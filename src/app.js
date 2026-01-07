@@ -3,6 +3,7 @@
 // ============================================
 
 const STORAGE_KEY = 'markdown-notes';
+let currentNoteId = null;
 
 // --------------------------------------------
 // UTILIDADES DE TEXTO
@@ -130,18 +131,53 @@ function createNote(content, title) {
   return note;
 }
 
-// --------------------------------------------
-// STORE DE NOTAS (FASE 2)
-// Usa closures para encapsular el estado
-// --------------------------------------------
+/**
+ * Garda las notas en LocalStorage
+ * @param {Array} notes - Array de notas a guardar
+ */
+function saveToStorage(notes) {
+  if (notes === undefined || notes === null) {
+    console.error('No se pueden guardar notas: Datos inválidos');
+    return;
+  }
+  const notesJSON = JSON.stringify(notes);
+  localStorage.setItem(STORAGE_KEY, notesJSON);
+}
 
 /**
- * Crea un store para manejar el estado de las notas
- * @returns {Object} Objeto con métodos para interactuar con las notas
+ * Carga las notas desde localStorage
+ * @returns {Array} Array de notas o array vacío si no hay datos
  */
-function createNotesStore() {
-  let notes = [];
+function loadFromStorage() {
+  const notesJSON = localStorage.getItem(STORAGE_KEY);
 
+  if (notesJSON === null || notesJSON === undefined) {
+    return [];
+  }
+
+  let notes = [];
+  const parsedNotes = JSON.parse(notesJSON);
+
+  if (Array.isArray(parsedNotes)) {
+    note = parsedNotes;
+  }
+
+  return notes;
+}
+
+/**
+ * Crea un store que persiste automáticamente en localStorage
+ * @returns {Object} Store con métodos para gestionar notas
+ */
+function createPersistentNotesStore() {
+  let notes = loadFromStorage();
+
+  /**
+   * Agrega una nueva nota y la persiste en localStorage
+   * @param {string} content - Contenido de la nota
+   * @param {string} [title] - Título opcional de la nota
+   * @returns {Object} Resultado de la operación
+   */
   function addNote(content, title) {
     if (content === undefined || content === null || content.trim() === '') {
       return { success: false, message: 'El contenido no puede estar vacío' };
@@ -154,10 +190,15 @@ function createNotesStore() {
     }
 
     notes.push(newNote);
+    saveToStorage(notes);
 
     return { success: true, note: newNote };
   }
 
+  /**
+   * Obtiene todas las notas
+   * @returns {Array} Copia del array de notas
+   */
   function getAllNotes() {
     const notesCopy = notes.map(function (note) {
       return { ...note };
@@ -166,6 +207,11 @@ function createNotesStore() {
     return notesCopy;
   }
 
+  /**
+   * Obtiene una nota por su ID
+   * @param {number} noteId - ID de la nota a buscar
+   * @returns {Object|null} Nota encontrada o null si no existe
+   */
   function getNoteById(noteId) {
     const foundNote = notes.find(function (note) {
       return note.id === noteId;
@@ -178,6 +224,15 @@ function createNotesStore() {
     return { ...foundNote };
   }
 
+  /**
+   * Actualiza una nota existente
+   * @param {number} noteId - ID de la nota a actualizar
+   * @param {Object} updates - Campos a actualizar
+   * @param {string} [updates.content] - Nuevo contenido
+   * @param {string} [updates.title] - Nuevo título
+   * @param {boolean} [updates.favorite] - Estado de favorito
+   * @returns {Object} Resultado de la operación
+   */
   function updateNote(noteId, updates) {
     if (noteId === undefined || noteId === null) {
       return { success: false, message: 'ID inválido' };
@@ -212,10 +267,16 @@ function createNotesStore() {
     }
 
     noteToUpdate.updatedAt = Date.now();
+    saveToStorage(notes);
 
     return { success: true, note: { ...noteToUpdate } };
   }
 
+  /**
+   * Elimina una nota por su ID
+   * @param {number} noteId - ID de la nota a eliminar
+   * @returns {Object} Resultado de la operación
+   */
   function deleteNote(noteId) {
     if (noteId === undefined || noteId === null) {
       return { success: false, message: 'ID inválido' };
@@ -231,9 +292,16 @@ function createNotesStore() {
       return { success: false, message: 'Nota no encontrada' };
     }
 
+    saveToStorage(notes);
+
     return { success: true, message: 'Nota eliminada exitosamente' };
   }
 
+  /**
+   * Busca notas por texto en título o contenido
+   * @param {string} query - Texto a buscar
+   * @returns {Array} Notas que coinciden con la búsqueda
+   */
   function searchNotes(query) {
     if (query === undefined || query === null || query.trim() === '') {
       return [];
@@ -256,6 +324,10 @@ function createNotesStore() {
     });
   }
 
+  /**
+   * Obtiene las notas ordenadas por fecha de actualización
+   * @returns {Array} Notas ordenadas de más reciente a más antigua
+   */
   function getNotesOrderedByDate() {
     const notesCopy = notes.map(function (note) {
       return { ...note };
@@ -268,6 +340,10 @@ function createNotesStore() {
     return notesCopy;
   }
 
+  /**
+   * Obtiene las notas marcadas como favoritas
+   * @returns {Array} Notas favoritas
+   */
   function getFavoriteNotes() {
     const favorites = notes.filter(function (note) {
       return note.favorite === true;
@@ -278,6 +354,10 @@ function createNotesStore() {
     });
   }
 
+  /**
+   * Obtiene el número total de notas
+   * @returns {number} Cantidad de notas
+   */
   function getNotesCount() {
     return notes.length;
   }
@@ -296,35 +376,91 @@ function createNotesStore() {
 }
 
 /**
- * Garda las notas en LocalStorage
- * @param {Array} notes - Array de notas a guardar
+ * Muestra el editor y el preview
  */
-function saveToStorage(notes) {
-  if (notes === undefined || notes === null) {
-    console.error('No se pueden guardar notas: Datos inválidos');
-    return;
-  }
-  const notesJSON = JSON.stringify(notes);
-  localStorage.setItem(STORAGE_KEY, notesJSON);
+function showEditorAndPreview() {
+  const editorSection = document.querySelector('#editor-section');
+  const previewSection = document.querySelector('#preview-section');
+
+  editorSection.style.display = 'flex';
+  previewSection.style.display = 'flex';
 }
 
 /**
- * Carga las notas desde localStorage
- * @returns {Array} Array de notas o array vacío si no hay datos
+ * Oculta el editor y el preview
  */
-function loadFromStorage() {
-  const notesJSON = localStorage.getItem(STORAGE_KEY);
+function hideEditorAndPreview() {
+  const editorSection = document.querySelector('#editor-section');
+  const previewSection = document.querySelector('#preview-section');
 
-  if (notesJSON === null || notesJSON === undefined) {
-    return [];
-  }
-
-  let notes = [];
-  const parsedNotes = JSON.parse(notesJSON);
-
-  if (Array.isArray(parsedNotes)) {
-    note = parsedNotes;
-  }
-
-  return notes;
+  editorSection.style.display = 'none';
+  previewSection.style.display = 'none';
 }
+
+/**
+ * Renderiza la lista de notas en el DOM
+ * @param {Array} notes - Array de notas a rederizar
+ */
+function renderNoteList(notes) {
+  const container = document.querySelector('#note-list');
+
+  if (!container) {
+    return;
+  }
+
+  // Limpiar el contenedor
+  while (container.firstChild) {
+    container.removeChild(container.firstChild);
+  }
+
+  // Mostrar estado vacío si no hay notas
+  if (!Array.isArray(notes) || notes.length === 0) {
+    const emptyState = document.createElement('div');
+    emptyState.className = 'empty-state';
+    emptyState.textContent = 'No hay notas aún. Crea una nota para empezar.';
+    container.appendChild(emptyState);
+    return;
+  }
+
+  // Renderizar cada nota
+  notes.forEach(function (note) {
+    const item = document.createElement('div');
+    item.className = 'note-item';
+    item.dataset.id = String(note.id);
+
+    const titleEl = document.createElement('h3');
+    titleEl.className = 'note-title';
+    titleEl.textContent = note.title || deriveTitle(note.content);
+
+    const excerptEl = document.createElement('p');
+    excerptEl.className = 'note-excerpt';
+    excerptEl.textContent = note.excerpt || deriveExcerpt(note.content, 100);
+
+    const dateEl = document.createElement('time');
+    dateEl.className = 'note-date';
+    const timestamp = note.updatedAt || note.createdAt || Date.now();
+    dateEl.textContent = new Date(timestamp).toLocaleString();
+
+    item.appendChild(titleEl);
+    item.appendChild(excerptEl);
+    item.appendChild(dateEl);
+
+    // Marcar nota activa comparando su id con currentNoteId
+    if (String(note.id) === String(currentNoteId)) {
+      item.classList.add('active');
+      item.setAttribute('aria-current', 'true');
+    }
+
+    container.appendChild(item);
+  });
+}
+
+/**
+ * Renderizar el editor con el contenido de una nota
+ * @param {Object|null} nota - Nota a renderizar o null para el editor vacío.
+ */
+
+/**
+ * Renderizar el Preview del contenido markdown
+ * @param {string} content - Contenido markdown a renderizar
+ */
