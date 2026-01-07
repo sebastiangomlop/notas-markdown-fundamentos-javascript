@@ -399,68 +399,113 @@ function hideEditorAndPreview() {
 
 /**
  * Renderiza la lista de notas en el DOM
- * @param {Array} notes - Array de notas a rederizar
+ * @param {Array} notes - Array de notas a renderizar
  */
 function renderNoteList(notes) {
-  const container = document.querySelector('#note-list');
+  const noteListContainer = document.querySelector('#note-list');
 
-  if (!container) {
+  noteListContainer.innerHTML = '';
+
+  if (notes.length === 0) {
+    const emptyMessage = document.createElement('p');
+    emptyMessage.textContent = 'No hay notas. Crea tu primera nota.';
+    emptyMessage.className = 'empty-message';
+    noteListContainer.append(emptyMessage);
     return;
   }
 
-  // Limpiar el contenedor
-  while (container.firstChild) {
-    container.removeChild(container.firstChild);
-  }
-
-  // Mostrar estado vacío si no hay notas
-  if (!Array.isArray(notes) || notes.length === 0) {
-    const emptyState = document.createElement('div');
-    emptyState.className = 'empty-state';
-    emptyState.textContent = 'No hay notas aún. Crea una nota para empezar.';
-    container.appendChild(emptyState);
-    return;
-  }
-
-  // Renderizar cada nota
   notes.forEach(function (note) {
-    const item = document.createElement('div');
-    item.className = 'note-item';
-    item.dataset.id = String(note.id);
+    const noteItem = document.createElement('div');
+    noteItem.className = 'note-item';
+    noteItem.dataset.id = note.id;
 
-    const titleEl = document.createElement('h3');
-    titleEl.className = 'note-title';
-    titleEl.textContent = note.title || deriveTitle(note.content);
-
-    const excerptEl = document.createElement('p');
-    excerptEl.className = 'note-excerpt';
-    excerptEl.textContent = note.excerpt || deriveExcerpt(note.content, 100);
-
-    const dateEl = document.createElement('time');
-    dateEl.className = 'note-date';
-    const timestamp = note.updatedAt || note.createdAt || Date.now();
-    dateEl.textContent = new Date(timestamp).toLocaleString();
-
-    item.appendChild(titleEl);
-    item.appendChild(excerptEl);
-    item.appendChild(dateEl);
-
-    // Marcar nota activa comparando su id con currentNoteId
-    if (String(note.id) === String(currentNoteId)) {
-      item.classList.add('active');
-      item.setAttribute('aria-current', 'true');
+    if (currentNoteId === note.id) {
+      noteItem.className = 'note-item active';
     }
 
-    container.appendChild(item);
+    const noteTitle = document.createElement('h3');
+    noteTitle.textContent = note.title;
+
+    const noteExcerpt = document.createElement('p');
+    noteExcerpt.textContent = note.excerpt;
+    noteExcerpt.className = 'note-excerpt';
+
+    const noteDate = document.createElement('small');
+    const date = new Date(note.updatedAt);
+    noteDate.textContent = date.toLocaleDateString();
+    noteDate.className = 'note-date';
+
+    noteItem.append(noteTitle);
+    noteItem.append(noteExcerpt);
+    noteItem.append(noteDate);
+
+    noteListContainer.append(noteItem);
   });
 }
 
 /**
- * Renderizar el editor con el contenido de una nota
- * @param {Object|null} nota - Nota a renderizar o null para el editor vacío.
+ * Renderiza el editor con el contenido de una nota
+ * @param {Object|null} note - Nota a renderizar o null para editor vacío
  */
+function renderEditor(note) {
+  const editorTextarea = document.querySelector('#editor-textarea');
+
+  if (note !== null && note !== undefined) {
+    showEditorAndPreview();
+    editorTextarea.value = note.content;
+    currentNoteId = note.id;
+  } else {
+    showEditorAndPreview();
+    editorTextarea.value = '';
+    currentNoteId = null;
+  }
+
+  renderPreview(editorTextarea.value);
+}
 
 /**
- * Renderizar el Preview del contenido markdown
- * @param {string} content - Contenido markdown a renderizar
+ * Renderiza el preview del contenido Markdown
+ * @param {string} content - Contenido Markdown a renderizar
  */
+function renderPreview(content) {
+  const previewContainer = document.querySelector('#preview-container');
+
+  previewContainer.innerHTML = '';
+
+  if (content === '' || content === null || content === undefined) {
+    const emptyMessage = document.createElement('p');
+    emptyMessage.textContent = 'El preview aparecerá aquí...';
+    emptyMessage.className = 'preview-empty';
+    previewContainer.append(emptyMessage);
+    return;
+  }
+
+  const lines = content.split('\n');
+
+  lines.forEach(function (line) {
+    if (line.startsWith('# ')) {
+      const heading = document.createElement('h1');
+      heading.textContent = line.slice(2);
+      previewContainer.append(heading);
+    } else if (line.startsWith('## ')) {
+      const heading = document.createElement('h2');
+      heading.textContent = line.slice(3);
+      previewContainer.append(heading);
+    } else if (line.startsWith('### ')) {
+      const heading = document.createElement('h3');
+      heading.textContent = line.slice(4);
+      previewContainer.append(heading);
+    } else if (line.startsWith('- ')) {
+      const listItem = document.createElement('li');
+      listItem.textContent = line.slice(2);
+      previewContainer.append(listItem);
+    } else if (line.trim() === '') {
+      const br = document.createElement('br');
+      previewContainer.append(br);
+    } else {
+      const paragraph = document.createElement('p');
+      paragraph.textContent = line;
+      previewContainer.append(paragraph);
+    }
+  });
+}
