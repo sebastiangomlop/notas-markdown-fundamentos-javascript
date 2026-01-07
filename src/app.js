@@ -2,6 +2,8 @@
 // SISTEMA DE NOTAS MARKDOWN
 // ============================================
 
+const STORAGE_KEY = 'markdown-notes';
+
 // --------------------------------------------
 // UTILIDADES DE TEXTO
 // --------------------------------------------
@@ -293,96 +295,36 @@ function createNotesStore() {
   };
 }
 
-// Crear una instancia del store
-console.log('=== CREAR STORE ===');
-const notesStore = createNotesStore();
-console.log('Store creado exitosamente');
-console.log('Total de notas:', notesStore.getNotesCount());
+/**
+ * Garda las notas en LocalStorage
+ * @param {Array} notes - Array de notas a guardar
+ */
+function saveToStorage(notes) {
+  if (notes === undefined || notes === null) {
+    console.error('No se pueden guardar notas: Datos inválidos');
+    return;
+  }
+  const notesJSON = JSON.stringify(notes);
+  localStorage.setItem(STORAGE_KEY, notesJSON);
+}
 
-// Ejemplo 1: Agregar notas al store
-console.log('\n=== AGREGAR NOTAS ===');
-const result1 = notesStore.addNote(
-  '# Mi primera nota\nEste es el contenido de mi primera nota en Markdown.',
-);
-console.log('Nota 1 agregada:', result1.success);
-console.log('Detalles:', result1.note);
+/**
+ * Carga las notas desde localStorage
+ * @returns {Array} Array de notas o array vacío si no hay datos
+ */
+function loadFromStorage() {
+  const notesJSON = localStorage.getItem(STORAGE_KEY);
 
-const result2 = notesStore.addNote(
-  '# Aprender JavaScript\nHoy aprendí sobre arrays y métodos de orden superior como map, filter y find.',
-);
-console.log('\nNota 2 agregada:', result2.success);
+  if (notesJSON === null || notesJSON === undefined) {
+    return [];
+  }
 
-const result3 = notesStore.addNote(
-  '# Lista de tareas\n- Estudiar closures\n- Practicar con objetos\n- Hacer ejercicios de arrays',
-  'Tareas del día',
-);
-console.log('Nota 3 agregada:', result3.success);
+  let notes = [];
+  const parsedNotes = JSON.parse(notesJSON);
 
-// Ejemplo 2: Intentar agregar nota vacía (validación)
-console.log('\n=== VALIDACIÓN: NOTA VACÍA ===');
-const resultEmpty = notesStore.addNote('   ');
-console.log('Resultado:', resultEmpty.message);
+  if (Array.isArray(parsedNotes)) {
+    note = parsedNotes;
+  }
 
-// Ejemplo 3: Obtener todas las notas
-console.log('\n=== OBTENER TODAS LAS NOTAS ===');
-const allNotes = notesStore.getAllNotes();
-console.log('Total de notas:', allNotes.length);
-allNotes.forEach(function (note) {
-  console.log(`- ${note.title} (ID: ${note.id})`);
-});
-
-// Ejemplo 4: Buscar una nota por ID
-console.log('\n=== BUSCAR NOTA POR ID ===');
-const firstNoteId = result1.note.id;
-const foundNote = notesStore.getNoteById(firstNoteId);
-console.log('Nota encontrada:', foundNote.title);
-console.log('Contenido:', foundNote.content);
-
-// Ejemplo 5: Actualizar una nota
-console.log('\n=== ACTUALIZAR NOTA ===');
-const updateResult = notesStore.updateNote(firstNoteId, {
-  content: '# Mi primera nota actualizada\nHe modificado el contenido de esta nota.',
-});
-console.log('Actualización exitosa:', updateResult.success);
-console.log('Nuevo título:', updateResult.note.title);
-
-// Ejemplo 6: Marcar una nota como favorita
-console.log('\n=== MARCAR COMO FAVORITA ===');
-const favoriteResult = notesStore.updateNote(result2.note.id, { favorite: true });
-console.log('Nota marcada como favorita:', favoriteResult.success);
-
-// Ejemplo 7: Buscar notas por texto
-console.log('\n=== BUSCAR NOTAS (searchNotes) ===');
-const searchResults = notesStore.searchNotes('JavaScript');
-console.log('Notas encontradas:', searchResults.length);
-searchResults.forEach(function (note) {
-  console.log(`- ${note.title}`);
-});
-
-// Ejemplo 8: Obtener notas ordenadas por fecha
-console.log('\n=== NOTAS ORDENADAS POR FECHA ===');
-const orderedNotes = notesStore.getNotesOrderedByDate();
-console.log('Notas (más recientes primero):');
-orderedNotes.forEach(function (note) {
-  console.log(`- ${note.title} (Actualizada: ${new Date(note.updatedAt).toLocaleString()})`);
-});
-
-// Ejemplo 9: Obtener notas favoritas
-console.log('\n=== NOTAS FAVORITAS ===');
-const favorites = notesStore.getFavoriteNotes();
-console.log('Total de favoritas:', favorites.length);
-favorites.forEach(function (note) {
-  console.log(`- ${note.title}`);
-});
-
-// Ejemplo 10: Eliminar una nota
-console.log('\n=== ELIMINAR NOTA ===');
-const deleteResult = notesStore.deleteNote(result3.note.id);
-console.log('Eliminación exitosa:', deleteResult.success);
-console.log('Total de notas después de eliminar:', notesStore.getNotesCount());
-
-// Ejemplo 11: Demostración de closure (el estado es privado)
-console.log('\n=== DEMOSTRACIÓN DE CLOSURE ===');
-console.log('El array "notes" no es accesible directamente desde afuera del store');
-console.log('Solo podemos acceder a través de los métodos públicos del store');
-console.log('Total de notas (usando método público):', notesStore.getNotesCount());
+  return notes;
+}
