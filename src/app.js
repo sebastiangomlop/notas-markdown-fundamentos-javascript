@@ -159,7 +159,7 @@ function loadFromStorage() {
   const parsedNotes = JSON.parse(notesJSON);
 
   if (Array.isArray(parsedNotes)) {
-    note = parsedNotes;
+    notes = parsedNotes;
   }
 
   return notes;
@@ -464,6 +464,17 @@ function renderEditor(note) {
 }
 
 /**
+ * Función para hacer render del Markdown
+ * @param {String} content - El contenido de l anota
+ */
+function renderMarkdown(content) {
+  if (typeof window.markdownit != 'undefined') {
+    const md = window.markdownit();
+    return md.render(content);
+  }
+}
+
+/**
  * Renderiza el preview del contenido Markdown
  * @param {string} content - Contenido Markdown a renderizar
  */
@@ -480,32 +491,142 @@ function renderPreview(content) {
     return;
   }
 
-  const lines = content.split('\n');
+  const html = renderMarkdown(content);
+  previewContainer.innerHTML = html;
+}
 
-  lines.forEach(function (line) {
-    if (line.startsWith('# ')) {
-      const heading = document.createElement('h1');
-      heading.textContent = line.slice(2);
-      previewContainer.append(heading);
-    } else if (line.startsWith('## ')) {
-      const heading = document.createElement('h2');
-      heading.textContent = line.slice(3);
-      previewContainer.append(heading);
-    } else if (line.startsWith('### ')) {
-      const heading = document.createElement('h3');
-      heading.textContent = line.slice(4);
-      previewContainer.append(heading);
-    } else if (line.startsWith('- ')) {
-      const listItem = document.createElement('li');
-      listItem.textContent = line.slice(2);
-      previewContainer.append(listItem);
-    } else if (line.trim() === '') {
-      const br = document.createElement('br');
-      previewContainer.append(br);
+/**
+ * Muestra un mensaje de error o éxito
+ * @param {string} message - Mensaje a mostrar
+ * @param {boolean} isError - true si es error, false si es éxito
+ */
+function showMessage(message, isError) {
+  const messageContainer = document.querySelector('#message-container');
+
+  messageContainer.textContent = message;
+
+  if (isError === true) {
+    messageContainer.className = 'message error';
+  } else {
+    messageContainer.className = 'message success';
+  }
+
+  setTimeout(() => {
+    messageContainer.textContent = '';
+    messageContainer.className = 'message';
+  }, 3000);
+}
+
+/**
+ * Inicitaliza todos los events listeners de la aplicación
+ * @param {Object} store - Store de notas
+ */
+function initializeEventLIsteners(store) {
+  const newNoteButton = document.querySelector('#new-note-button');
+
+  newNoteButton.addEventListener('click', () => {
+    renderEditor(null);
+  });
+
+  const saveNoteButton = document.querySelector('#save-note-button');
+
+  saveNoteButton.addEventListener('click', () => {
+    const editorTextArea = document.querySelector('#editor-textarea');
+    const content = editorTextArea.value;
+
+    if (content.trim() === '') {
+      showMessage('El contenido no puede estar vacío', true);
+      return;
+    }
+
+    if (currentNoteId != null) {
+      const result = store.updateNote(currentNoteId, { content: content });
+
+      if (result.success === true) {
+        showMessage('Nota actiualizada Exitosamente', false);
+        const notes = store.getNotesOrderedByDate();
+        renderNoteList(notes);
+      } else {
+        showMessage(result.message, true);
+      }
     } else {
-      const paragraph = document.createElement('p');
-      paragraph.textContent = line;
-      previewContainer.append(paragraph);
+      const result = store.addNote(content);
+
+      if (result.success === true) {
+        showMessage('Nota creada exitosamente', false);
+        currentNoteId = result?.note?.id;
+        const notes = store.getNotesOrderedByDate();
+        renderNoteList(notes);
+      } else {
+        showMessage(result.message, true);
+      }
+    }
+  });
+
+  const deleteNoteButton = document.querySelector('#delete-note-button');
+
+  deleteNoteButton.addEventListener('click', () => {
+    if (currentNoteId === null) {
+      showMessage('No hay una nota seleccionada para eliminar', true);
+    }
+
+    const confirmed = confirm('¿Estás seguro de eliminar esta nota?');
+
+    if (confirmed === true) {
+      const result = store.deleteNote(currentNoteId);
+
+      if (result.success === true) {
+        showMessage('Nota Eliinada exitosamente', false);
+        hideEditorAndPreview();
+        currentNoteId = null;
+        const notes = store.getNotesOrderedByDate();
+        renderNoteList(notes);
+      } else {
+        showMessage(result.message, true);
+      }
+    }
+  });
+
+  const editorTextarea = document.querySelector('#editor-textarea');
+  editorTextarea.addEventListener('input', () => {
+    const content = editorTextarea.value;
+    renderPreview(content);
+  });
+
+  const noteListContainer = document.querySelector('#note-list');
+
+  noteListContainer.addEventListener('click', () => {
+    const noteItem = event.target.closest('.note-item');
+
+    if (noteItem != null) {
+      const noteId = Number(noteItem.dataset.id);
+      const note = store.getNoteById(noteId);
+
+      if (note != null) {
+        renderEditor(note);
+        const notes = store.getNotesOrderedByDate();
+        renderNoteList(notes);
+      }
     }
   });
 }
+
+/**
+ * Función principal que inicializa la aplicación
+ */
+function initialzeApp() {
+  const store = createPersistentNotesStore();
+  const notes = store.getNotesOrderedByDate();
+  renderNoteList(notes);
+
+  hideEditorAndPreview();
+
+  initializeEventLIsteners(store);
+
+  console.log('Aplicación inicializada correctamente');
+  console.log('Total de notas cargadas:', store.getNotesCount());
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initialzeApp();
+});
