@@ -132,7 +132,7 @@ function createNote(content, title) {
 }
 
 /**
- * Garda las notas en LocalStorage
+ * Guarda las notas en LocalStorage
  * @param {Array} notes - Array de notas a guardar
  */
 function saveToStorage(notes) {
@@ -465,7 +465,7 @@ function renderEditor(note) {
 
 /**
  * Función para hacer render del Markdown
- * @param {String} content - El contenido de l anota
+ * @param {String} content - El contenido de la nota
  */
 function renderMarkdown(content) {
   if (typeof window.markdownit != 'undefined') {
@@ -521,7 +521,7 @@ function showMessage(message, isError) {
  * Inicitaliza todos los events listeners de la aplicación
  * @param {Object} store - Store de notas
  */
-function initializeEventLIsteners(store) {
+function initializeEventListeners(store) {
   const newNoteButton = document.querySelector('#new-note-button');
 
   newNoteButton.addEventListener('click', () => {
@@ -543,7 +543,7 @@ function initializeEventLIsteners(store) {
       const result = store.updateNote(currentNoteId, { content: content });
 
       if (result.success === true) {
-        showMessage('Nota actiualizada Exitosamente', false);
+        showMessage('Nota actualizada exitosamente', false);
         const notes = store.getNotesOrderedByDate();
         renderNoteList(notes);
       } else {
@@ -576,7 +576,7 @@ function initializeEventLIsteners(store) {
       const result = store.deleteNote(currentNoteId);
 
       if (result.success === true) {
-        showMessage('Nota Eliinada exitosamente', false);
+        showMessage('Nota eliminada exitosamente', false);
         hideEditorAndPreview();
         currentNoteId = null;
         const notes = store.getNotesOrderedByDate();
@@ -614,19 +614,19 @@ function initializeEventLIsteners(store) {
 /**
  * Función principal que inicializa la aplicación
  */
-function initialzeApp() {
+function initializeApp() {
   const store = createPersistentNotesStore();
   const notes = store.getNotesOrderedByDate();
   renderNoteList(notes);
 
   hideEditorAndPreview();
 
-  initializeEventLIsteners(store);
+  initializeEventListeners(store);
 
   console.log('Aplicación inicializada correctamente');
   console.log('Total de notas cargadas:', store.getNotesCount());
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  initialzeApp();
+  initializeApp();
 });
