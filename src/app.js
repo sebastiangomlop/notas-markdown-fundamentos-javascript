@@ -82,12 +82,14 @@ function deriveExcerpt(content, maxLen) {
 // --------------------------------------------
 
 /**
- * Genera un ID único basado en la fecha actual
- * @returns {number} Timestamp en milisegundos desde 1970
+ * Genera un ID único basado en la fecha actual y un valor aleatorio,
+ * evitando colisiones cuando se generan varios IDs en el mismo milisegundo
+ * @returns {string} Identificador único
  */
 function generateId() {
   const timestamp = Date.now();
-  return timestamp;
+  const randomPart = Math.random().toString(36).slice(2, 8);
+  return `${timestamp}-${randomPart}`;
 }
 
 // --------------------------------------------
@@ -209,7 +211,7 @@ function createPersistentNotesStore() {
 
   /**
    * Obtiene una nota por su ID
-   * @param {number} noteId - ID de la nota a buscar
+   * @param {string} noteId - ID de la nota a buscar
    * @returns {Object|null} Nota encontrada o null si no existe
    */
   function getNoteById(noteId) {
@@ -226,7 +228,7 @@ function createPersistentNotesStore() {
 
   /**
    * Actualiza una nota existente
-   * @param {number} noteId - ID de la nota a actualizar
+   * @param {string} noteId - ID de la nota a actualizar
    * @param {Object} updates - Campos a actualizar
    * @param {string} [updates.content] - Nuevo contenido
    * @param {string} [updates.title] - Nuevo título
@@ -274,7 +276,7 @@ function createPersistentNotesStore() {
 
   /**
    * Elimina una nota por su ID
-   * @param {number} noteId - ID de la nota a eliminar
+   * @param {string} noteId - ID de la nota a eliminar
    * @returns {Object} Resultado de la operación
    */
   function deleteNote(noteId) {
@@ -599,7 +601,7 @@ function initializeEventLIsteners(store) {
     const noteItem = event.target.closest('.note-item');
 
     if (noteItem != null) {
-      const noteId = Number(noteItem.dataset.id);
+      const noteId = noteItem.dataset.id;
       const note = store.getNoteById(noteId);
 
       if (note != null) {
