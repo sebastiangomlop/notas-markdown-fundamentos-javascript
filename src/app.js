@@ -156,10 +156,15 @@ function loadFromStorage() {
   }
 
   let notes = [];
-  const parsedNotes = JSON.parse(notesJSON);
 
-  if (Array.isArray(parsedNotes)) {
-    notes = parsedNotes;
+  try {
+    const parsedNotes = JSON.parse(notesJSON);
+
+    if (Array.isArray(parsedNotes)) {
+      notes = parsedNotes;
+    }
+  } catch (error) {
+    console.error('Error al leer las notas guardadas:', error);
   }
 
   return notes;
