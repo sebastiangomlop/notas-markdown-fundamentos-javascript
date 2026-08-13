@@ -568,6 +568,7 @@ function initializeEventLIsteners(store) {
   deleteNoteButton.addEventListener('click', () => {
     if (currentNoteId === null) {
       showMessage('No hay una nota seleccionada para eliminar', true);
+      return;
     }
 
     const confirmed = confirm('¿Estás seguro de eliminar esta nota?');
