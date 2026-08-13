@@ -595,7 +595,7 @@ function initializeEventLIsteners(store) {
 
   const noteListContainer = document.querySelector('#note-list');
 
-  noteListContainer.addEventListener('click', () => {
+  noteListContainer.addEventListener('click', (event) => {
     const noteItem = event.target.closest('.note-item');
 
     if (noteItem != null) {
