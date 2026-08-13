@@ -472,6 +472,8 @@ function renderMarkdown(content) {
     const md = window.markdownit();
     return md.render(content);
   }
+
+  return '';
 }
 
 /**
