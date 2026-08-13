@@ -101,6 +101,10 @@ function generateId() {
  * @returns {Object|null} Objeto de nota o null si hay error
  */
 function createNote(content, title) {
+  if (typeof content !== 'string') {
+    return null;
+  }
+
   const trimmedContent = content.trim();
 
   if (trimmedContent === '') {
