@@ -441,3 +441,8 @@ header h1 {
 .preview-container sup {
   top: -0.5rem;
 }
+
+.editor-section,
+.preview-section {
+  display: none;
+}

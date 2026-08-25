@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Eventos y estado</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        margin: 0;
+        line-height: 1.4;
+        color: #111;
+      }
+      .container {
+        width: min(960px, 92vw);
+        margin: 0 auto;
+        padding: 24px 0;
+      }
+      header {
+        border-bottom: 1px solid #eee;
+        background: #fff;
+        position: sticky;
+        top: 0;
+      }
+      .nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .logo {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: #111;
+      }
+      .btn {
+        border: 1px solid #111;
+        background: #111;
+        color: #fff;
+        padding: 10px 14px;
+        border-radius: 10px;
+        cursor: pointer;
+      }
+      .btn.secondary {
+        background: transparent;
+        color: #111;
+      }
+      .hero {
+        padding: 28px 0;
+      }
+      .hero h1 {
+        margin: 0 0 8px;
+        font-size: 28px;
+      }
+      .hero p {
+        margin: 0 0 16px;
+        color: #444;
+      }
+      .card {
+        border: 1px solid #eee;
+        border-radius: 14px;
+        padding: 14px;
+        background: #fff;
+      }
+      .muted {
+        color: #555;
+      }
+      .section-title {
+        margin: 24px 0 10px;
+        font-size: 18px;
+      }
+      .demo {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 14px;
+      }
+      @media (max-width: 760px) {
+        .demo {
+          grid-template-columns: 1fr;
+        }
+      }
+      .status {
+        border-radius: 12px;
+        padding: 10px 12px;
+        background: #f5f5f5;
+        border: 1px solid #eee;
+      }
+      .hover-zone {
+        border-radius: 14px;
+        border: 1px dashed #bbb;
+        padding: 16px;
+        min-height: 120px;
+        display: grid;
+        gap: 8px;
+        align-content: start;
+        transition: background 160ms ease, border-color 160ms ease;
+        background: #fff;
+      }
+      .hover-zone.is-hover {
+        background: #111;
+        color: #fff;
+        border-color: #111;
+      }
+      .pill {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        border: 1px solid #ddd;
+        background: #fafafa;
+      }
+      .hover-zone.is-hover .pill {
+        border-color: rgba(255, 255, 255, 0.3);
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff;
+      }
+      .hero-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .section-title.flush {
+        margin-top: 0;
+      }
+      .muted.flush {
+        margin-bottom: 0;
+      }
+      .muted.no-margin {
+        margin: 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <div class="container nav">
+        <div class="brand">
+          <div class="logo" aria-hidden="true"></div>
+          <strong>Eventos + Estado</strong>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <h1>Captura interacción</h1>
+        <p>
+          Un <code>click</code> cambia el estado de la app y un <code>hover</code> cambia el estado
+          visual de una sección.
+        </p>
+
+        <div class="hero-actions">
+          <button class="btn" id="btn-like" type="button">Me gusta</button>
+          <button class="btn secondary" id="btn-reset" type="button">Reset</button>
+        </div>
+      </section>
+
+      <section class="demo" aria-label="Demo de eventos">
+        <article class="card">
+          <h2 class="section-title flush">Estado de la aplicación</h2>
+          <div class="status" id="status" aria-live="polite"></div>
+          <p class="muted flush">
+            Cada click incrementa el contador y renderiza nuevamente la UI.
+          </p>
+        </article>
+
+        <aside class="card">
+          <h2 class="section-title flush">Zona hover</h2>
+          <section id="hover-zone" class="hover-zone" tabindex="0">
+            <span class="pill" id="hover-pill">mouse: fuera</span>
+            <strong id="hover-title">Pasa el mouse aquí</strong>
+            <p id="hover-text" class="muted no-margin">
+              Cuando entras/sales, cambiamos una clase y el texto.
+            </p>
+          </section>
+        </aside>
+      </section>
+    </main>
+
+<script src="./apps.js" defer></script>
+  </body>
+</html>
